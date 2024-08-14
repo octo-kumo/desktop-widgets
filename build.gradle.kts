@@ -5,6 +5,7 @@ plugins {
 }
 
 group = "me.kumo"
+
 version = "0.0.1"
 
 application {

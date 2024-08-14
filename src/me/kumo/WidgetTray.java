@@ -19,6 +19,7 @@ public class WidgetTray {
             popupMenu.add(new PrefCheckboxMenuItem("Dark Theme", "themeDark", widget.theme, widget::setTheme));
             popupMenu.add(new PrefCheckboxMenuItem("Strong", "themeStrong", widget.strong, widget::setStrong));
             popupMenu.add(new PrefCheckboxMenuItem("Align right", "themeAlignRight", widget.alignRight, widget::setAlignRight));
+            popupMenu.add(new PrefCheckboxMenuItem("Always on top", "themeAlwaysTop", false, widget::setAlwaysOnTop));
             popupMenu.addSeparator();
             popupMenu.add(id = new PrefStringItem("Student ID", "studentId", null));
             popupMenu.add(pin = new PrefStringItem("Minerva Pin", "minervaPin", null));
