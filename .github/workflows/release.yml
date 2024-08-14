@@ -20,6 +20,8 @@ jobs:
         run: |
           VERSION=$(grep '^version' build.gradle.kts | cut -d '=' -f 2 | tr -d ' "')
           echo "::set-output name=VERSION::$VERSION"
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
       - name: Build with Gradle
         run: ./gradlew clean build shadowJar
 
