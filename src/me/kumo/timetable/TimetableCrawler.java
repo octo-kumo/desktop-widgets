@@ -34,9 +34,9 @@ public class TimetableCrawler {
         Document document = minerva.get("/pban1/bwskfshd.P_CrseSchd");
         Timetable.Class[][] classes = transpose_clean(document.select("table[summary='This layout table is used to present the weekly course schedule.'] tr")
                 .stream().map(tr -> tr.select("th, td")).reduce(new ArrayList<List<Element>>(), (acc, row) -> {
-                    if (!acc.isEmpty() && acc.get(acc.size() - 1).stream().anyMatch(td -> td.hasAttr("rowspan"))) {
+                    if (!acc.isEmpty() && acc.getLast().stream().anyMatch(td -> td.hasAttr("rowspan"))) {
                         AtomicInteger index = new AtomicInteger(0);
-                        acc.get(acc.size() - 1).stream()
+                        acc.getLast().stream()
                                 .map(td -> new Tuple<>(index.getAndIncrement(), Integer.parseInt("0" + td.attr("rowspan")), td))
                                 .filter(it -> it.b() > 1)
                                 .forEach(it -> row.add(it.a(), new Element("td").attr("rowspan", String.valueOf(it.b() - 1))));
@@ -51,8 +51,8 @@ public class TimetableCrawler {
                         return new Timetable.Class(
                                 nodes.get(0).toString().trim(),
                                 nodes.get(3).toString().trim(),
-                                LocalTime.parse(timeStrings[0].trim(), TIME_FORMATTER),
-                                LocalTime.parse(timeStrings[1].trim(), TIME_FORMATTER));
+                                LocalTime.parse(timeStrings[0].trim(), TIME_FORMATTER).toSecondOfDay(),
+                                LocalTime.parse(timeStrings[1].trim(), TIME_FORMATTER).toSecondOfDay());
                     } else return null;
                 }).toArray(Timetable.Class[]::new)).toArray(Timetable.Class[][]::new));
         if (classes.length != 7) {

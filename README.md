@@ -3,7 +3,7 @@
 # How to use
 
 ![img.png](images/img.png)
-
+![img.png](images/img2.png)
 1. Upon launch no window is displayed, you should see a tray icon appearing.
 2. You might also be asked for minerva credentials, you can cancel if you want to key them in later.
 3. Right-click on the tray icon to access settings.

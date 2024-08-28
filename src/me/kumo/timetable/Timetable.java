@@ -6,7 +6,6 @@ import me.kumo.Widgets;
 
 import javax.swing.*;
 import java.awt.*;
-import java.time.LocalTime;
 import java.util.Arrays;
 
 public class Timetable {
@@ -26,7 +25,7 @@ public class Timetable {
         if (this.classes.length != 7) throw new RuntimeException("Class schedule 2d array does not have 5 rows!");
     }
 
-    public record Class(String name, String location, LocalTime start, LocalTime end) {
+    public record Class(String name, String location, long start, long end) {
     }
 
     public static class GUI extends JComponent {

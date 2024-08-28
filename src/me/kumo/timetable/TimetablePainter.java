@@ -31,29 +31,29 @@ public class TimetablePainter {
             return 20;
         }
 
-        LocalTime now = LocalTime.now();
-//                LocalTime.ofNanoOfDay((LocalTime.now().toNanoOfDay() * 10000L) % (86400L * 1000_000_000L));
+        long now = LocalTime.now().toSecondOfDay();
+//                LocalTime.ofSecondOfDay((LocalTime.now().toSecondOfDay() * 10000L) % (86400L * 1000_000_000L));
         int day = LocalDate.now().getDayOfWeek().getValue() - 1;
         int dday = day;
         final var timetable = schedule.classes;
-        while (timetable[dday].length == 0 || (dday == day && timetable[dday][timetable[dday].length - 1].end().isBefore(now)))
+        while (timetable[dday].length == 0 || (dday == day && timetable[dday][timetable[dday].length - 1].end() < now))
             dday = (dday + 1) % 7;
         double process = 0;
         var classes = timetable[dday];
 
         g.setFont(g.getFont().deriveFont(20f).deriveFont(strong ? Font.BOLD : Font.PLAIN));
-        drawStringAJ(g, DayOfWeek.of(dday + 1) + (dday == day ? " " + now.format(DISPLAY) :
+        drawStringAJ(g, DayOfWeek.of(dday + 1) + (dday == day ? " " + LocalTime.ofSecondOfDay(now).format(DISPLAY) :
                 dday == (day + 1) % 7 ? " TMR" : "(IN " + (dday + 7 - day) % 7 + " DAYS)"), align ? W - 10 : 10, H - 10, BOTTOM, align ? RIGHT : LEFT, strong ? bg : TRANSPARENT);
 
 
         for (int i = 0; i < classes.length; i++) {
             Color c;
-            if (dday == day && classes[i].end().isBefore(now)) {
+            if (dday == day && classes[i].end() < now) {
                 c = theme[1];
                 process++;
-            } else if (dday == day && classes[i].start().isBefore(now)) {
+            } else if (dday == day && classes[i].start() < now) {
                 c = theme[2];
-                process += 1.0 * (now.toNanoOfDay() - classes[i].start().toNanoOfDay()) / (classes[i].end().toNanoOfDay() - classes[i].start().toNanoOfDay());
+                process += 1.0 * (now - classes[i].start()) / (classes[i].end() - classes[i].start());
             } else c = theme[0];
 
             g.setColor(c);
@@ -61,11 +61,11 @@ public class TimetablePainter {
 //            g.drawRect(0, y, W, H);
             g.setFont(g.getFont().deriveFont(20f).deriveFont(strong ? Font.BOLD : Font.PLAIN));
 
-            drawStringAJ(g, classes[i].start().format(DISPLAY), align ? W - 10 : 10, y, TOP, align ? RIGHT : LEFT, strong ? bg : TRANSPARENT);
+            drawStringAJ(g, LocalTime.ofSecondOfDay(classes[i].start()).format(DISPLAY), align ? W - 10 : 10, y, TOP, align ? RIGHT : LEFT, strong ? bg : TRANSPARENT);
             drawStringAJ(g, classes[i].name(), align ? W - 75 : 75, y, TOP, align ? RIGHT : LEFT, strong ? bg : TRANSPARENT);
 
             g.setFont(g.getFont().deriveFont(20f).deriveFont(Font.PLAIN));
-            drawStringAJ(g, classes[i].end().format(DISPLAY), align ? W - 10 : 10, y + H, BOTTOM, align ? RIGHT : LEFT, strong ? bg : TRANSPARENT);
+            drawStringAJ(g, LocalTime.ofSecondOfDay(classes[i].end()).format(DISPLAY), align ? W - 10 : 10, y + H, BOTTOM, align ? RIGHT : LEFT, strong ? bg : TRANSPARENT);
 
             g.setColor(new Color(128 << 24 | (c.getRGB() & 0x00FFFFFF), true));
             g.setFont(g.getFont().deriveFont(15f));

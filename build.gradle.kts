@@ -6,19 +6,22 @@ plugins {
 
 group = "me.kumo"
 
-version = "0.0.1"
+version = "0.0.2"
 
 application {
     mainClass = "me.kumo.Widgets"
 }
+
+java.sourceCompatibility = JavaVersion.VERSION_21
+java.targetCompatibility = JavaVersion.VERSION_21
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation("com.google.code.gson:gson:2.10.1")
     implementation("org.jsoup:jsoup:1.17.2")
+    implementation("com.google.code.gson:gson:2.10.1")
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
