@@ -1,5 +1,7 @@
 package me.kumo;
 
+import me.kumo.timetable.TimetableCrawler;
+
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -28,7 +30,11 @@ public class WidgetTray {
             popupMenu.addSeparator();
             MenuItem refresh = new MenuItem("Refresh");
             MenuItem exitItem = new MenuItem("Exit");
-            refresh.addActionListener(e -> Widgets.refresh());
+            refresh.addActionListener(e -> {
+                Widgets.prefs.remove("timetable");
+                TimetableCrawler._instance = null;
+                Widgets.refresh();
+            });
             exitItem.addActionListener(e -> System.exit(0));
             popupMenu.add(refresh);
             popupMenu.add(exitItem);

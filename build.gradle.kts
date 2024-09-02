@@ -6,7 +6,7 @@ plugins {
 
 group = "me.kumo"
 
-version = "0.0.2"
+version = "0.0.3"
 
 application {
     mainClass = "me.kumo.Widgets"

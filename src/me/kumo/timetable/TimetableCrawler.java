@@ -22,13 +22,6 @@ public class TimetableCrawler {
     public static Timetable _instance;
     public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("h:mm a");
 
-    static {
-        var T = Widgets.prefs.get("timetable", null);
-        if (T != null && !T.isBlank()) {
-            _instance = Timetable.fromString(T);
-        }
-    }
-
     public static Timetable getSchedule(Minerva minerva) {
         if (_instance != null) return _instance;
         Document document = minerva.get("/pban1/bwskfshd.P_CrseSchd");

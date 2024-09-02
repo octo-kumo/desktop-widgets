@@ -5,6 +5,7 @@ import me.kumo.timetable.TimetableCrawler;
 
 import javax.swing.*;
 import java.awt.*;
+import java.net.UnknownHostException;
 import java.util.prefs.Preferences;
 
 public class Widgets extends JFrame {
@@ -71,6 +72,19 @@ public class Widgets extends JFrame {
                     gui.setSchedule(TimetableCrawler.getSchedule(minerva));
                 } else {
                     JOptionPane.showMessageDialog(null, "Unable to login\nPossibly due to incorrect login information", "Timetable", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (RuntimeException e) {
+                if (e.getCause() instanceof UnknownHostException) {
+                    var T = Widgets.prefs.get("timetable", null);
+                    if (T != null && !T.isBlank()) {
+                        TimetableCrawler._instance = Timetable.fromString(T);
+                        gui.setSchedule(TimetableCrawler._instance);
+                        JOptionPane.showMessageDialog(null, "Using cached data!", "Warn", JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(null, e.getMessage() + "\nOffline!", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, e.getMessage(), "Runtime Error", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
