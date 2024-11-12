@@ -44,8 +44,8 @@ public class TimetableCrawler {
                         return new Timetable.Class(
                                 nodes.get(0).toString().trim(),
                                 nodes.get(3).toString().trim(),
-                                LocalTime.parse(timeStrings[0].trim().toUpperCase(), TIME_FORMATTER).toSecondOfDay(),
-                                LocalTime.parse(timeStrings[1].trim().toUpperCase(), TIME_FORMATTER).toSecondOfDay());
+                                parseTime(timeStrings[0].trim()),
+                                parseTime(timeStrings[1].trim()));
                     } else return null;
                 }).toArray(Timetable.Class[]::new)).toArray(Timetable.Class[][]::new));
         if (classes.length != 7) {
@@ -66,5 +66,13 @@ public class TimetableCrawler {
                         .mapToObj(c -> array[c][r]).toArray(Timetable.Class[]::new))
                 .map(a -> Arrays.stream(a).filter(Objects::nonNull)
                         .toArray(Timetable.Class[]::new)).skip(1).limit(7).toArray(Timetable.Class[][]::new);
+    }
+
+    private static long parseTime(String time) {
+        try {
+            return LocalTime.parse(time.toLowerCase(), TIME_FORMATTER).toSecondOfDay();
+        } catch (Exception e) {
+            return LocalTime.parse(time.toUpperCase(), TIME_FORMATTER).toSecondOfDay();
+        }
     }
 }
