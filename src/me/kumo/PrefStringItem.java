@@ -10,7 +10,7 @@ public class PrefStringItem extends MenuItem {
         super(name);
         value = Widgets.prefs.get(prefId, def);
         addActionListener(e -> {
-            var res = JOptionPane.showInputDialog(null, "Enter a new value for '" + name + "':", value);
+            String res = JOptionPane.showInputDialog(null, "Enter a new value for '" + name + "':", value);
             if (res != null) {
                 value = res;
                 Widgets.prefs.put(prefId, value);

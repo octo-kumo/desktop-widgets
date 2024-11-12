@@ -52,7 +52,10 @@ public class Minerva {
     public boolean login(String username, String password) {
         cookies.clear();
         get("/pban1/twbkwbis.P_WWWLogin");
-        Document doc = post("/pban1/twbkwbis.P_ValLogin", Map.of("sid", username, "PIN", password));
+        Map<String, String> map = new HashMap<>();
+        map.put("sid", username);
+        map.put("PIN", password);
+        Document doc = post("/pban1/twbkwbis.P_ValLogin", map);
         if (!doc.select("meta[http-equiv=refresh][content*=url=/pban1/twbkwbis.P_GenMenu?name=bmenu.P_MainMnu]").isEmpty()) {
             System.out.println("logged in");
             return true;

@@ -6,14 +6,14 @@ plugins {
 
 group = "me.kumo"
 
-version = "0.0.3"
+version = "0.0.4"
 
 application {
     mainClass = "me.kumo.Widgets"
 }
 
-java.sourceCompatibility = JavaVersion.VERSION_21
-java.targetCompatibility = JavaVersion.VERSION_21
+java.sourceCompatibility = JavaVersion.VERSION_1_8
+java.targetCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
     mavenCentral()

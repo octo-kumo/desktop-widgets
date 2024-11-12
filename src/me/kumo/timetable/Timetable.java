@@ -7,11 +7,12 @@ import me.kumo.Widgets;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Arrays;
+import java.util.Objects;
 
 public class Timetable {
     private static final Gson gson = new GsonBuilder().create();
 
-    private static final Color[][] THEMES = new Color[][]{
+    public static final Color[][] THEMES = new Color[][]{
             {Color.WHITE, Color.GRAY, Color.CYAN, new Color(0, 0, 0, 100)},
             {Color.BLACK, Color.DARK_GRAY, Color.GREEN, new Color(255, 255, 255, 170)},
     };
@@ -25,7 +26,60 @@ public class Timetable {
         if (this.classes.length != 7) throw new RuntimeException("Class schedule 2d array does not have 5 rows!");
     }
 
-    public record Class(String name, String location, long start, long end) {
+    public static final class Class {
+        private final String name;
+        private final String location;
+        private final long start;
+        private final long end;
+
+        public Class(String name, String location, long start, long end) {
+            this.name = name;
+            this.location = location;
+            this.start = start;
+            this.end = end;
+        }
+
+        public String name() {
+            return name;
+        }
+
+        public String location() {
+            return location;
+        }
+
+        public long start() {
+            return start;
+        }
+
+        public long end() {
+            return end;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) return true;
+            if (obj == null || obj.getClass() != this.getClass()) return false;
+            Class that = (Class) obj;
+            return Objects.equals(this.name, that.name) &&
+                    Objects.equals(this.location, that.location) &&
+                    this.start == that.start &&
+                    this.end == that.end;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, location, start, end);
+        }
+
+        @Override
+        public String toString() {
+            return "Class[" +
+                    "name=" + name + ", " +
+                    "location=" + location + ", " +
+                    "start=" + start + ", " +
+                    "end=" + end + ']';
+        }
+
     }
 
     public static class GUI extends JComponent {

@@ -8,20 +8,24 @@ import java.time.format.DateTimeFormatter;
 
 import static javax.swing.SwingConstants.*;
 import static me.kumo.utils.GraphicsUtils.drawStringAJ;
+import static me.kumo.utils.GraphicsUtils.drawStringClipped;
 
 public class TimetablePainter {
     public static final DateTimeFormatter DISPLAY = DateTimeFormatter.ofPattern("hh mm ");
     public static final int W = 400, H = 50;
     private static final Color TRANSPARENT = new Color(0, 0, 0, 0);
 
-    public static int paint(Graphics2D g, Timetable schedule, Color[] theme, boolean strong, boolean align) {
+    public static void setup(Graphics2D g) {
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
         g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+    }
 
+    public static int paint(Graphics2D g, Timetable schedule, Color[] theme, boolean strong, boolean align) {
+        setup(g);
         Color bg = theme[3];
         g.setColor(theme[0]);
 
@@ -35,11 +39,11 @@ public class TimetablePainter {
 //                LocalTime.ofSecondOfDay((LocalTime.now().toSecondOfDay() * 10000L) % (86400L * 1000_000_000L));
         int day = LocalDate.now().getDayOfWeek().getValue() - 1;
         int dday = day;
-        final var timetable = schedule.classes;
+        final Timetable.Class[][] timetable = schedule.classes;
         while (timetable[dday].length == 0 || (dday == day && timetable[dday][timetable[dday].length - 1].end() < now))
             dday = (dday + 1) % 7;
         double process = 0;
-        var classes = timetable[dday];
+        Timetable.Class[] classes = timetable[dday];
 
         g.setFont(g.getFont().deriveFont(20f).deriveFont(strong ? Font.BOLD : Font.PLAIN));
         drawStringAJ(g, DayOfWeek.of(dday + 1) + (dday == day ? " " + LocalTime.ofSecondOfDay(now).format(DISPLAY) :
@@ -74,5 +78,48 @@ public class TimetablePainter {
         g.setColor(theme[0]);
         g.fillRect(align ? W - 5 : 0, H, 5, (int) (process * H));
         return classes.length * H + H;
+    }
+
+    public static void paintWeek(Graphics2D g, Timetable schedule, Color[] theme, int w, int h, boolean weekends) {
+        setup(g);
+        g.setColor(theme[0]);
+        g.fillRect(0, 0, w, h);
+        int top = 50;
+        int left = 50;
+        if (schedule == null) return;
+        int colW = (w - left) / (weekends ? 7 : 5);
+        // from 8am to 6pm
+        double minuteH = (h - top) * 1d / ((18 - 8) * 60);
+        for (int m = 0; m < (18 - 8) * 60; m += 30) {
+            int y = (int) (m * minuteH) + top;
+            g.setColor(theme[1]);
+            g.drawLine(left, y, w, y);
+            g.setColor(theme[1]);
+            g.setFont(g.getFont().deriveFont(15f));
+            drawStringAJ(g, LocalTime.of(8, 0).plusMinutes(m).format(DISPLAY), left - 5, y, CENTER, RIGHT, TRANSPARENT);
+        }
+        for (int day = 0; day < (weekends ? 7 : 5); day++) {
+            g.setColor(theme[1]);
+            g.setFont(g.getFont().deriveFont(20f));
+            drawStringAJ(g, DayOfWeek.of(day + 1).toString(), day * colW + left + colW / 2f, top / 2f, CENTER, CENTER, TRANSPARENT);
+            Timetable.Class[] classes = schedule.classes[day];
+            int x = day * colW + left;
+            for (Timetable.Class c : classes) {
+                int y = (int) ((c.start() - LocalTime.of(8, 0).toSecondOfDay()) / 60d * minuteH) + top;
+                int height = (int) ((c.end() - c.start()) / 60d * minuteH);
+                g.setColor(theme[0]);
+                g.fillRect(x, y, colW, height);
+                g.setColor(theme[1]);
+                g.drawRect(x, y, colW, height);
+                g.setFont(g.getFont().deriveFont(15f));
+
+                int topM = drawStringAJ(g, LocalTime.ofSecondOfDay(c.start()).format(DISPLAY), x + colW - 5, y + 5, TOP, RIGHT, TRANSPARENT);
+                int bottomM = drawStringAJ(g, LocalTime.ofSecondOfDay(c.end()).format(DISPLAY), x + colW - 5, y + height - 5, BOTTOM, RIGHT, TRANSPARENT);
+
+                drawStringClipped(g, c.name(), x + 5, y + 5, TOP, LEFT, TRANSPARENT, colW - 10 - topM);
+                drawStringClipped(g, c.location(), x + 5, y + height - 5, BOTTOM, LEFT, TRANSPARENT, colW - 10 - bottomM);
+
+            }
+        }
     }
 }

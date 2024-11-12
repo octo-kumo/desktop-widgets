@@ -5,6 +5,8 @@ import me.kumo.timetable.TimetableCrawler;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.net.UnknownHostException;
 import java.util.prefs.Preferences;
 
@@ -46,6 +48,12 @@ public class Widgets extends JFrame {
             } catch (AWTException e) {
                 throw new RuntimeException(e);
             }
+            gui.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (e.getClickCount() == 2) WidgetTray.openCalendar(widget);
+                }
+            });
         });
     }
 
@@ -75,8 +83,8 @@ public class Widgets extends JFrame {
                 }
             } catch (RuntimeException e) {
                 if (e.getCause() instanceof UnknownHostException) {
-                    var T = Widgets.prefs.get("timetable", null);
-                    if (T != null && !T.isBlank()) {
+                    String T = Widgets.prefs.get("timetable", null);
+                    if (T != null && T.length() > 0) {
                         TimetableCrawler._instance = Timetable.fromString(T);
                         gui.setSchedule(TimetableCrawler._instance);
                         JOptionPane.showMessageDialog(null, "Using cached data!", "Warn", JOptionPane.ERROR_MESSAGE);
