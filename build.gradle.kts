@@ -6,7 +6,7 @@ plugins {
 
 group = "me.kumo"
 
-version = "0.0.4"
+version = "0.0.5"
 
 application {
     mainClass = "me.kumo.Widgets"
@@ -41,4 +41,9 @@ sourceSets {
 }
 tasks.test {
     useJUnitPlatform()
+}
+tasks.jar {
+    manifest {
+        attributes["Implementation-Version"] = project.version
+    }
 }

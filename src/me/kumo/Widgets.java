@@ -29,7 +29,9 @@ public class Widgets extends JFrame {
         pack();
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration());
-        setLocation(screenSize.width - insets.right - getWidth(), screenSize.height - insets.bottom - getHeight());
+        setLocation(
+                alignRight ? screenSize.width - insets.right - getWidth() : insets.left,
+                screenSize.height - insets.bottom - getHeight());
     }
 
 
@@ -67,6 +69,7 @@ public class Widgets extends JFrame {
 
     public void setAlignRight(boolean alignRight) {
         this.alignRight = alignRight;
+        this.alignES();
     }
 
     public static void refresh() {

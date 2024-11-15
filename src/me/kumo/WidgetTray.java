@@ -22,6 +22,9 @@ public class WidgetTray {
             SystemTray tray = SystemTray.getSystemTray();
             Image image = Toolkit.getDefaultToolkit().getImage(WidgetTray.class.getResource("/timetable.png"));
             popupMenu = new PopupMenu();
+            popupMenu.add("Desktop Widgets");
+            popupMenu.add(Version.CURRENT.get());
+            popupMenu.addSeparator();
             popupMenu.add(vis = new PrefCheckboxMenuItem("Visibility", "themeVisible", true, widget::setVisible));
             popupMenu.add(new PrefCheckboxMenuItem("Dark Theme", "themeDark", widget.theme, widget::setTheme));
             popupMenu.add(new PrefCheckboxMenuItem("Strong", "themeStrong", widget.strong, widget::setStrong));
@@ -74,8 +77,10 @@ public class WidgetTray {
         trayIcon.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                vis.setState(!vis.getState());
-                widget.setVisible(vis.getState());
+                if (e.getButton() == MouseEvent.BUTTON1) {
+                    vis.setState(!vis.getState());
+                    widget.setVisible(vis.getState());
+                }
             }
         });
         return trayIcon;
