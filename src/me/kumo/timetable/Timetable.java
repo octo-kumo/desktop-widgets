@@ -16,20 +16,24 @@ public class Timetable {
             {Color.WHITE, Color.GRAY, Color.CYAN, new Color(0, 0, 0, 100)},
             {Color.BLACK, Color.DARK_GRAY, Color.GREEN, new Color(255, 255, 255, 170)},
     };
-
+    public String date;
+    public int minHour = 8;
+    public int maxHour = 18;
     public Class[][] classes;
 
-    public Timetable(Class[][] classes) {
+    public Timetable(String date, Class[][] classes) {
+        this.date = date;
         this.classes = classes;
-        System.out.println(this.classes.length);
-        System.out.println(Arrays.deepToString(this.classes));
-        if (this.classes.length != 7) throw new RuntimeException("Class schedule 2d array does not have 5 rows!");
+        if (this.classes != null) {
+            minHour = Arrays.stream(classes).flatMap(Arrays::stream).mapToInt(c -> (int) (c.start / 3600)).min().orElse(8);
+            maxHour = Arrays.stream(classes).flatMap(Arrays::stream).mapToInt(c -> (int) Math.ceil(c.end / 3600d)).max().orElse(18);
+        }
     }
 
     public static final class Class {
         private final String name;
         private final String location;
-        private final long start;
+        final long start;
         private final long end;
 
         public Class(String name, String location, long start, long end) {
@@ -117,10 +121,10 @@ public class Timetable {
 
     @Override
     public String toString() {
-        return gson.toJson(classes);
+        return gson.toJson(this);
     }
 
     public static Timetable fromString(String json) {
-        return new Timetable(gson.fromJson(json, Class[][].class));
+        return gson.fromJson(json, Timetable.class);
     }
 }

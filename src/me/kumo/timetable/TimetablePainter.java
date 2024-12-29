@@ -29,7 +29,7 @@ public class TimetablePainter {
         Color bg = theme[3];
         g.setColor(theme[0]);
 
-        if (schedule == null) {
+        if (schedule == null || schedule.classes == null) {
             g.setFont(g.getFont().deriveFont(20f).deriveFont(strong ? Font.BOLD : Font.PLAIN));
             drawStringAJ(g, "No schedule", align ? W - 10 : 10, H - 10, BOTTOM, align ? RIGHT : LEFT, strong ? bg : TRANSPARENT);
             return 20;
@@ -86,17 +86,19 @@ public class TimetablePainter {
         g.fillRect(0, 0, w, h);
         int top = 50;
         int left = 50;
-        if (schedule == null) return;
+        if (schedule == null || schedule.classes == null) return;
         int colW = (w - left) / (weekends ? 7 : 5);
-        // from 8am to 6pm
-        double minuteH = (h - top) * 1d / ((18 - 8) * 60);
-        for (int m = 0; m < (18 - 8) * 60; m += 30) {
+
+        int minH = schedule.minHour;
+        int maxH = schedule.maxHour;
+        double minuteH = (h - top) * 1d / ((maxH - minH) * 60);
+        for (int m = 0; m < (maxH - minH) * 60; m += 30) {
             int y = (int) (m * minuteH) + top;
-            g.setColor(theme[1]);
+            g.setColor(transparent(theme[1], 0.5f));
             g.drawLine(left, y, w, y);
             g.setColor(theme[1]);
             g.setFont(g.getFont().deriveFont(15f));
-            drawStringAJ(g, LocalTime.of(8, 0).plusMinutes(m).format(DISPLAY), left - 5, y, CENTER, RIGHT, TRANSPARENT);
+            drawStringAJ(g, LocalTime.of(minH, 0).plusMinutes(m).format(DISPLAY), left - 5, y, CENTER, RIGHT, TRANSPARENT);
         }
         for (int day = 0; day < (weekends ? 7 : 5); day++) {
             g.setColor(theme[1]);
@@ -105,7 +107,7 @@ public class TimetablePainter {
             Timetable.Class[] classes = schedule.classes[day];
             int x = day * colW + left;
             for (Timetable.Class c : classes) {
-                int y = (int) ((c.start() - LocalTime.of(8, 0).toSecondOfDay()) / 60d * minuteH) + top;
+                int y = (int) ((c.start() - LocalTime.of(minH, 0).toSecondOfDay()) / 60d * minuteH) + top;
                 int height = (int) ((c.end() - c.start()) / 60d * minuteH);
                 g.setColor(theme[0]);
                 g.fillRect(x, y, colW, height);
@@ -121,5 +123,9 @@ public class TimetablePainter {
 
             }
         }
+    }
+
+    private static Color transparent(Color color, float v) {
+        return new Color(color.getRed(), color.getGreen(), color.getBlue(), (int) (v * 255));
     }
 }

@@ -12,6 +12,7 @@ import java.util.prefs.Preferences;
 
 public class Widgets extends JFrame {
     public static Preferences prefs = Preferences.userNodeForPackage(Widgets.class);
+    public static Preferences cache = Preferences.userNodeForPackage(Widgets.class).node("cache");
     private static TrayIcon tray;
     public static final Minerva minerva = new Minerva();
     private static Timetable.GUI gui;
@@ -80,16 +81,15 @@ public class Widgets extends JFrame {
             if (pass == null) return;
             try {
                 if (minerva.login(usern, pass)) {
-                    gui.setSchedule(TimetableCrawler.getSchedule(minerva));
+                    gui.setSchedule(TimetableCrawler.getSchedule(minerva, 0, false));
                 } else {
                     JOptionPane.showMessageDialog(null, "Unable to login\nPossibly due to incorrect login information", "Timetable", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (RuntimeException e) {
                 if (e.getCause() instanceof UnknownHostException) {
-                    String T = Widgets.prefs.get("timetable", null);
-                    if (T != null && T.length() > 0) {
-                        TimetableCrawler._instance = Timetable.fromString(T);
-                        gui.setSchedule(TimetableCrawler._instance);
+                    Timetable schedule = TimetableCrawler.getSchedule(null);
+                    if (schedule != null) {
+                        gui.setSchedule(schedule);
                         JOptionPane.showMessageDialog(null, "Using cached data!", "Warn", JOptionPane.ERROR_MESSAGE);
                     } else {
                         JOptionPane.showMessageDialog(null, e.getMessage() + "\nOffline!", "Error", JOptionPane.ERROR_MESSAGE);

@@ -7,24 +7,38 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.TextNode;
 
-import javax.swing.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.prefs.BackingStoreException;
 
 import static java.util.stream.IntStream.range;
 
 public class TimetableCrawler {
-    public static Timetable _instance;
     public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("h:mm a");
 
+    private static final Map<String, Timetable> TIMETABLES = new HashMap<>();
+
     public static Timetable getSchedule(Minerva minerva) {
-        if (_instance != null) return _instance;
-        Document document = minerva.get("/pban1/bwskfshd.P_CrseSchd");
+        return getSchedule(minerva, 0, true);
+    }
+
+    public static Timetable getSchedule(Minerva minerva, int offset, boolean useCache) {
+        LocalDate now = LocalDate.now();
+        while (now.getDayOfWeek() != DayOfWeek.MONDAY) now = now.minusDays(1);
+        now = now.plusDays(offset * 7L);
+        String date = now.format(DateTimeFormatter.ofPattern("MM/dd/yyyy"));
+
+        if (useCache && TIMETABLES.containsKey(date)) return TIMETABLES.get(date);
+        if (useCache && Widgets.cache.get("timetable-" + date, null) != null) {
+            TIMETABLES.put(date, Timetable.fromString(Widgets.cache.get("timetable-" + date, null)));
+            return TIMETABLES.get(date);
+        }
+        if (minerva == null) return null;
+        Document document = minerva.get("/pban1/bwskfshd.P_CrseSchd?start_date_in=" + date);
         Timetable.Class[][] classes = transpose_clean(document.select("table[summary='This layout table is used to present the weekly course schedule.'] tr")
                 .stream().map(tr -> tr.select("th, td")).reduce(new ArrayList<List<Element>>(), (acc, row) -> {
                     if (!acc.isEmpty() && acc.get(acc.size() - 1).stream().anyMatch(td -> td.hasAttr("rowspan"))) {
@@ -48,16 +62,10 @@ public class TimetableCrawler {
                                 parseTime(timeStrings[1].trim()));
                     } else return null;
                 }).toArray(Timetable.Class[]::new)).toArray(Timetable.Class[][]::new));
-        if (classes.length != 7) {
-            JOptionPane.showMessageDialog(null, "Crawler failed, weekdays=" + classes.length, "Error with Fetch", JOptionPane.ERROR_MESSAGE);
-            return null;
-        }
-        if (Arrays.stream(classes).allMatch(d -> d.length == 0)) {
-            JOptionPane.showMessageDialog(null, "No classes found!", "Error with Fetch", JOptionPane.ERROR_MESSAGE);
-            return null;
-        }
-        _instance = new Timetable(classes);
-        Widgets.prefs.put("timetable", _instance.toString());
+        if (classes.length != 7 || Arrays.stream(classes).allMatch(d -> d.length == 0)) classes = null;
+        Timetable _instance = new Timetable(date, classes);
+        Widgets.cache.put("timetable-" + date, _instance.toString());
+        TIMETABLES.put(date, _instance);
         return _instance;
     }
 
@@ -73,6 +81,14 @@ public class TimetableCrawler {
             return LocalTime.parse(time.toLowerCase(), TIME_FORMATTER).toSecondOfDay();
         } catch (Exception e) {
             return LocalTime.parse(time.toUpperCase(), TIME_FORMATTER).toSecondOfDay();
+        }
+    }
+
+    public static void clearCache() {
+        TIMETABLES.clear();
+        try {
+            Widgets.cache.clear();
+        } catch (BackingStoreException ignored) {
         }
     }
 }

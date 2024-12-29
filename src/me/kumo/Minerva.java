@@ -5,6 +5,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,6 +38,24 @@ public class Minerva {
         try {
             Connection.Response res = Jsoup.connect(origin + path)
                     .method(Connection.Method.POST)
+                    .header("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8")
+                    .userAgent(USER_AGENT)
+                    .timeout(timeout)
+                    .cookies(cookies)
+                    .data(body)
+                    .execute();
+            cookies.putAll(res.cookies());
+            return res.parse();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Document post(String path, Collection<Connection.KeyVal> body) {
+        try {
+            Connection.Response res = Jsoup.connect(origin + path)
+                    .method(Connection.Method.POST)
+                    .header("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8")
                     .userAgent(USER_AGENT)
                     .timeout(timeout)
                     .cookies(cookies)

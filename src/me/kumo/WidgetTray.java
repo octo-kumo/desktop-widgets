@@ -8,6 +8,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class WidgetTray {
     public static PopupMenu popupMenu;
@@ -41,8 +43,7 @@ public class WidgetTray {
             MenuItem exitItem = new MenuItem("Exit");
             calendar.addActionListener(e -> openCalendar(widget));
             refresh.addActionListener(e -> {
-                Widgets.prefs.remove("timetable");
-                TimetableCrawler._instance = null;
+                TimetableCrawler.clearCache();
                 Widgets.refresh();
             });
             exitItem.addActionListener(e -> System.exit(0));
@@ -58,15 +59,54 @@ public class WidgetTray {
     }
 
     public static void openCalendar(Widgets widget) {
+        AtomicReference<Timetable> currentCalendar = new AtomicReference<>(TimetableCrawler.getSchedule(Widgets.minerva, 0, false));
+        AtomicInteger offset = new AtomicInteger();
         JFrame f = new JFrame("Weekly Calendar");
+        JLabel date = new JLabel(currentCalendar.get().date);
         f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         f.add(new Component() {
             @Override
             public void paint(Graphics g) {
                 super.paint(g);
-                TimetablePainter.paintWeek((Graphics2D) g, TimetableCrawler._instance, Timetable.THEMES[widget.theme ? 1 : 0], getWidth(), getHeight(), false);
+                TimetablePainter.paintWeek((Graphics2D) g, currentCalendar.get(), Timetable.THEMES[widget.theme ? 1 : 0], getWidth(), getHeight(), false);
             }
-        });
+        }, BorderLayout.CENTER);
+        f.add(new JToolBar() {{
+            add(new JButton("Refresh") {{
+                addActionListener(e -> {
+                    TimetableCrawler.clearCache();
+                    Widgets.refresh();
+                    f.repaint();
+                });
+            }});
+            add(new JButton("Dark Theme") {{
+                addActionListener(e -> {
+                    widget.setTheme(!widget.theme);
+                    f.repaint();
+                });
+            }});
+            add(new JButton("Previous Week") {{
+                addActionListener(e -> {
+                    offset.getAndDecrement();
+                    currentCalendar.set(TimetableCrawler.getSchedule(Widgets.minerva, offset.get(), false));
+                    date.setText(currentCalendar.get().date);
+                    f.repaint();
+                });
+            }});
+            add(date);
+            add(new JButton("Next Week") {{
+                addActionListener(e -> {
+                    offset.getAndIncrement();
+                    currentCalendar.set(TimetableCrawler.getSchedule(Widgets.minerva, offset.get(), false));
+                    date.setText(currentCalendar.get().date);
+                    f.repaint();
+                });
+            }});
+            add(new JButton("Close") {{
+                addActionListener(e -> f.dispose());
+            }});
+            setFloatable(false);
+        }}, BorderLayout.NORTH);
         f.setSize(800, 600);
         f.setLocationRelativeTo(null);
         f.setVisible(true);
