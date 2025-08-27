@@ -1,15 +1,19 @@
 package me.kumo;
 
-import java.awt.*;
 import java.util.function.Consumer;
 
-public class PrefCheckboxMenuItem extends CheckboxMenuItem {
+import dorkbox.systemTray.Checkbox;
+
+public class PrefCheckboxMenuItem extends Checkbox {
     public PrefCheckboxMenuItem(String name, String prefId, boolean def, Consumer<Boolean> stateListener) {
-        super(name, Widgets.prefs.getBoolean(prefId, def));
-        addItemListener(e -> {
-            Widgets.prefs.putBoolean(prefId, getState());
-            if (stateListener != null) stateListener.accept(getState());
+        super(name);
+        setCallback(e -> {
+            System.out.println("Setting " + prefId + " to " + getChecked());
+            Widgets.prefs.putBoolean(prefId, getChecked());
+            if (stateListener != null)
+                stateListener.accept(getChecked());
         });
-        if (stateListener != null) stateListener.accept(getState());
+        if (stateListener != null)
+            stateListener.accept(getChecked());
     }
 }

@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 import static org.jsoup.helper.HttpConnection.KeyVal.create;
 
 public class CoursesCrawler {
-    private static final Gson gson = new GsonBuilder().create();
+    public static final Gson gson = new GsonBuilder().create();
 
     public enum TERM {
         FALL("09"),
@@ -69,7 +69,7 @@ public class CoursesCrawler {
     }
 
 
-    public static ArrayList<Course.Section> getCourseSections(Minerva minerva, int year, TERM term, String subject, String course) {
+    public static Course.Section[] getCourseSections(Minerva minerva, int year, TERM term, String subject, String course) {
         Document doc = minerva.post("/pban1/bwskfcls.P_GetCrse", new ArrayList<Connection.KeyVal>() {{
             add(create("term_in", year + term.suffix));
             add(create("sel_subj", "dummy"));
@@ -110,7 +110,6 @@ public class CoursesCrawler {
         int o = 0;
         for (int i = 2; i < rows.size(); i++) {
             Element row = rows.get(i);
-            System.out.println(row.text().trim());
             if (row.text().trim().isEmpty()) continue;
             if (row.childrenSize() == 2) {
                 String note = row.text().replace("NOTES: ", "").trim();
@@ -124,12 +123,14 @@ public class CoursesCrawler {
                         sections.add(section);
                     }
                     o = row.child(8).text().trim().equals("TBA") ? 1 : 0;
+                    String credits = row.child(6).text().trim();
+                    if (credits.contains("/")) credits = credits.split("/")[1];
                     section = new Course.Section(crn,
                             row.child(2).text().trim(),
                             row.child(3).text().trim(),
                             row.child(4).text().trim(),
                             row.child(5).text().trim(),
-                            Double.parseDouble(row.child(6).text().trim()),
+                            Double.parseDouble(credits),
                             row.child(7).text().trim(),
                             nullIfTBA(row.child(16 - o).text().trim()),
                             row.child(19 - o).text().trim(),
@@ -140,25 +141,28 @@ public class CoursesCrawler {
                             Integer.parseInt(row.child(14 - o).text().trim()),
                             Integer.parseInt(row.child(15 - o).text().trim()));
                 }
-                String[] times = o == 1 || row.child(9).text().trim().equals("TBA") ? null : row.child(9).text().trim().split("-");
-                String[] dates = row.child(17 - o).text().trim().split("-");
+                String[] times = (o == 1 || row.child(8).text().trim().equals("TBA") ||
+                        row.child(9).text().trim().equals("TBA")) ? null : row.child(9).text().trim().split("-");
+                String[] dates = row.child(17 - o).text().trim().equals("-") ? null :
+                        row.child(17 - o).text().trim().split("-");
                 slots.add(new Course.Slot(
                         parseDays(row.child(8).text().trim()),
                         nullIfTBA(row.child(18 - o).text().trim()),
                         times == null ? null : times[0].trim(),
                         times == null ? null : times[1].trim(),
-                        dates[0].trim(),
-                        dates[1].trim()));
+                        dates == null ? null : dates[0].trim(),
+                        dates == null ? null : dates[1].trim()));
             }
         }
         if (section != null) {
             section.slots = slots.toArray(new Course.Slot[0]);
             sections.add(section);
         }
-        return sections;
+        return sections.toArray(new Course.Section[0]);
     }
 
     private static Set<DayOfWeek> parseDays(String days) {
+        if (days.equals("TBA")) return null;
         return days.chars().mapToObj(c -> {
             switch (c) {
                 case 'M':

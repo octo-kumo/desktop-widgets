@@ -5,61 +5,68 @@ import me.kumo.timetable.TimetableCrawler;
 import me.kumo.timetable.TimetablePainter;
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.Component;
+import java.awt.AWTException;
+import java.awt.BorderLayout;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Toolkit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import dorkbox.systemTray.Menu;
+import dorkbox.systemTray.MenuItem;
+import dorkbox.systemTray.Separator;
+import dorkbox.systemTray.SystemTray;
+
 public class WidgetTray {
-    public static PopupMenu popupMenu;
     public static PrefStringItem id;
     public static PrefStringItem pin;
     public static PrefCheckboxMenuItem autoLogin;
-    private static PrefCheckboxMenuItem vis;
 
-
-    public static TrayIcon setup(Widgets widget) throws AWTException {
-        if (SystemTray.isSupported()) {
-            SystemTray tray = SystemTray.getSystemTray();
-            Image image = Toolkit.getDefaultToolkit().getImage(WidgetTray.class.getResource("/timetable.png"));
-            popupMenu = new PopupMenu();
-            popupMenu.add("Desktop Widgets");
-            popupMenu.add(Version.CURRENT.get());
-            popupMenu.addSeparator();
-            popupMenu.add(vis = new PrefCheckboxMenuItem("Visibility", "themeVisible", true, widget::setVisible));
-            popupMenu.add(new PrefCheckboxMenuItem("Dark Theme", "themeDark", widget.theme, widget::setTheme));
-            popupMenu.add(new PrefCheckboxMenuItem("Strong", "themeStrong", widget.strong, widget::setStrong));
-            popupMenu.add(new PrefCheckboxMenuItem("Align right", "themeAlignRight", widget.alignRight, widget::setAlignRight));
-            popupMenu.add(new PrefCheckboxMenuItem("Always on top", "themeAlwaysTop", false, widget::setAlwaysOnTop));
-            popupMenu.addSeparator();
-            popupMenu.add(id = new PrefStringItem("Student ID", "studentId", null));
-            popupMenu.add(pin = new PrefStringItem("Minerva Pin", "minervaPin", null));
-            autoLogin = new PrefCheckboxMenuItem("Auto Login", "autoLogin", false, null);
-            popupMenu.add(autoLogin);
-            popupMenu.addSeparator();
-            MenuItem calendar = new MenuItem("Weekly Calendar");
-            MenuItem refresh = new MenuItem("Refresh");
-            MenuItem exitItem = new MenuItem("Exit");
-            calendar.addActionListener(e -> openCalendar(widget));
-            refresh.addActionListener(e -> {
-                TimetableCrawler.clearCache();
-                Widgets.refresh();
-            });
-            exitItem.addActionListener(e -> System.exit(0));
-            popupMenu.add(calendar);
-            popupMenu.add(refresh);
-            popupMenu.add(exitItem);
-            // Create the tray icon
-            TrayIcon trayIcon = getTrayIcon(widget, image);
-            tray.add(trayIcon);
-            return trayIcon;
+    public static SystemTray setup(Widgets widget) throws AWTException {
+        SystemTray tray = SystemTray.get();
+        if (tray == null) {
+            throw new RuntimeException("Unable to load SystemTray!");
         }
-        return null;
+        Image image = Toolkit.getDefaultToolkit().getImage(WidgetTray.class.getResource("/timetable.png"));
+        Menu menu = tray.getMenu();
+        menu.add(new MenuItem("Desktop Widgets"));
+        menu.add(new MenuItem(Version.CURRENT.get()));
+        menu.add(new JSeparator());
+        menu.add(new PrefCheckboxMenuItem("Visibility", "themeVisible", true, widget::setVisible));
+        menu.add(new PrefCheckboxMenuItem("Dark Theme", "themeDark", widget.theme, widget::setTheme));
+        menu.add(new PrefCheckboxMenuItem("Strong", "themeStrong", widget.strong, widget::setStrong));
+        menu.add(new PrefCheckboxMenuItem("Align right", "themeAlignRight", widget.alignRight,
+                widget::setAlignRight));
+        menu.add(new PrefCheckboxMenuItem("Always on top", "themeAlwaysTop", false, widget::setAlwaysOnTop));
+        menu.add(new JSeparator());
+        menu.add(id = new PrefStringItem("Student ID", "studentId", null));
+        menu.add(pin = new PrefStringItem("Minerva Pin", "minervaPin", null));
+        autoLogin = new PrefCheckboxMenuItem("Auto Login", "autoLogin", false, null);
+        menu.add(autoLogin);
+        menu.add(new Separator());
+        MenuItem calendar = new MenuItem("Weekly Calendar");
+        MenuItem refresh = new MenuItem("Refresh");
+        MenuItem exitItem = new MenuItem("Exit");
+        calendar.setCallback((e) -> openCalendar(widget));
+
+        refresh.setCallback(e -> {
+            TimetableCrawler.clearCache();
+            Widgets.refresh();
+        });
+        exitItem.setCallback(e -> System.exit(0));
+        menu.add(calendar);
+        menu.add(refresh);
+        menu.add(exitItem);
+        tray.setImage(image);
+        return tray;
     }
 
     public static void openCalendar(Widgets widget) {
-        AtomicReference<Timetable> currentCalendar = new AtomicReference<>(TimetableCrawler.getSchedule(Widgets.minerva, 0, false));
+        AtomicReference<Timetable> currentCalendar = new AtomicReference<>(
+                TimetableCrawler.getSchedule(Widgets.minerva, 0, false));
         AtomicInteger offset = new AtomicInteger();
         JFrame f = new JFrame("Weekly Calendar");
         JLabel date = new JLabel(currentCalendar.get().date);
@@ -68,61 +75,60 @@ public class WidgetTray {
             @Override
             public void paint(Graphics g) {
                 super.paint(g);
-                TimetablePainter.paintWeek((Graphics2D) g, currentCalendar.get(), Timetable.THEMES[widget.theme ? 1 : 0], getWidth(), getHeight(), false);
+                TimetablePainter.paintWeek((Graphics2D) g, currentCalendar.get(),
+                        Timetable.THEMES[widget.theme ? 1 : 0], getWidth(), getHeight(), false);
             }
         }, BorderLayout.CENTER);
-        f.add(new JToolBar() {{
-            add(new JButton("Refresh") {{
-                addActionListener(e -> {
-                    TimetableCrawler.clearCache();
-                    Widgets.refresh();
-                    f.repaint();
+        f.add(new JToolBar() {
+            {
+                add(new JButton("Refresh") {
+                    {
+                        addActionListener(e -> {
+                            TimetableCrawler.clearCache();
+                            Widgets.refresh();
+                            f.repaint();
+                        });
+                    }
                 });
-            }});
-            add(new JButton("Dark Theme") {{
-                addActionListener(e -> {
-                    widget.setTheme(!widget.theme);
-                    f.repaint();
+                add(new JButton("Dark Theme") {
+                    {
+                        addActionListener(e -> {
+                            widget.setTheme(!widget.theme);
+                            f.repaint();
+                        });
+                    }
                 });
-            }});
-            add(new JButton("Previous Week") {{
-                addActionListener(e -> {
-                    offset.getAndDecrement();
-                    currentCalendar.set(TimetableCrawler.getSchedule(Widgets.minerva, offset.get(), false));
-                    date.setText(currentCalendar.get().date);
-                    f.repaint();
+                add(new JButton("Previous Week") {
+                    {
+                        addActionListener(e -> {
+                            offset.getAndDecrement();
+                            currentCalendar.set(TimetableCrawler.getSchedule(Widgets.minerva, offset.get(), false));
+                            date.setText(currentCalendar.get().date);
+                            f.repaint();
+                        });
+                    }
                 });
-            }});
-            add(date);
-            add(new JButton("Next Week") {{
-                addActionListener(e -> {
-                    offset.getAndIncrement();
-                    currentCalendar.set(TimetableCrawler.getSchedule(Widgets.minerva, offset.get(), false));
-                    date.setText(currentCalendar.get().date);
-                    f.repaint();
+                add(date);
+                add(new JButton("Next Week") {
+                    {
+                        addActionListener(e -> {
+                            offset.getAndIncrement();
+                            currentCalendar.set(TimetableCrawler.getSchedule(Widgets.minerva, offset.get(), false));
+                            date.setText(currentCalendar.get().date);
+                            f.repaint();
+                        });
+                    }
                 });
-            }});
-            add(new JButton("Close") {{
-                addActionListener(e -> f.dispose());
-            }});
-            setFloatable(false);
-        }}, BorderLayout.NORTH);
+                add(new JButton("Close") {
+                    {
+                        addActionListener(e -> f.dispose());
+                    }
+                });
+                setFloatable(false);
+            }
+        }, BorderLayout.NORTH);
         f.setSize(800, 600);
         f.setLocationRelativeTo(null);
         f.setVisible(true);
-    }
-
-    private static TrayIcon getTrayIcon(Widgets widget, Image image) {
-        TrayIcon trayIcon = new TrayIcon(image, "Desktop Widgets", popupMenu);
-        trayIcon.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getButton() == MouseEvent.BUTTON1) {
-                    vis.setState(!vis.getState());
-                    widget.setVisible(vis.getState());
-                }
-            }
-        });
-        return trayIcon;
     }
 }

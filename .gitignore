@@ -40,3 +40,5 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+all_courses.json

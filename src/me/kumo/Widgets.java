@@ -4,6 +4,9 @@ import me.kumo.timetable.Timetable;
 import me.kumo.timetable.TimetableCrawler;
 
 import javax.swing.*;
+
+import dorkbox.systemTray.SystemTray;
+
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -11,9 +14,9 @@ import java.net.UnknownHostException;
 import java.util.prefs.Preferences;
 
 public class Widgets extends JFrame {
-    public static Preferences prefs = Preferences.userNodeForPackage(Widgets.class);
-    public static Preferences cache = Preferences.userNodeForPackage(Widgets.class).node("cache");
-    private static TrayIcon tray;
+    public static Preferences prefs = Preferences.userNodeForPackage(Widgets.class).node("widget_prefs");
+    public static Preferences cache = Preferences.userNodeForPackage(Widgets.class).node("widget_cache");
+    private static SystemTray tray;
     public static final Minerva minerva = new Minerva();
     private static Timetable.GUI gui;
     public boolean theme = true;
@@ -24,17 +27,18 @@ public class Widgets extends JFrame {
         setType(Type.UTILITY);
         setUndecorated(true);
         setBackground(new Color(0, 0, 0, 0));
+        System.out.println(prefs.absolutePath());
     }
 
     public void alignES() {
         pack();
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration());
+        Insets insets = Toolkit.getDefaultToolkit().getScreenInsets(
+                GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration());
         setLocation(
                 alignRight ? screenSize.width - insets.right - getWidth() : insets.left,
                 screenSize.height - insets.bottom - getHeight());
     }
-
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
@@ -44,7 +48,7 @@ public class Widgets extends JFrame {
             widget.repaint();
             widget.alignES();
             widget.setVisible(true);
-            new Timer(100, e -> widget.repaint()).start();
+            new Timer(10000, e -> widget.repaint()).start();
             refresh();
             try {
                 tray = WidgetTray.setup(widget);
@@ -54,7 +58,8 @@ public class Widgets extends JFrame {
             gui.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    if (e.getClickCount() == 2) WidgetTray.openCalendar(widget);
+                    if (e.getClickCount() == 2)
+                        WidgetTray.openCalendar(widget);
                 }
             });
         });
@@ -75,15 +80,20 @@ public class Widgets extends JFrame {
 
     public static void refresh() {
         SwingUtilities.invokeLater(() -> {
-            String usern = WidgetTray.autoLogin.getState() ? WidgetTray.id.getValue() : JOptionPane.showInputDialog("Your minerva id?");
-            if (usern == null) return;
-            String pass = WidgetTray.autoLogin.getState() ? WidgetTray.pin.getValue() : JOptionPane.showInputDialog("Your minerva pin?");
-            if (pass == null) return;
+            String usern = WidgetTray.autoLogin.getChecked() ? WidgetTray.id.getValue()
+                    : JOptionPane.showInputDialog("Your minerva id?");
+            if (usern == null)
+                return;
+            String pass = WidgetTray.autoLogin.getChecked() ? WidgetTray.pin.getValue()
+                    : JOptionPane.showInputDialog("Your minerva pin?");
+            if (pass == null)
+                return;
             try {
                 if (minerva.login(usern, pass)) {
                     gui.setSchedule(TimetableCrawler.getSchedule(minerva, 0, false));
                 } else {
-                    JOptionPane.showMessageDialog(null, "Unable to login\nPossibly due to incorrect login information", "Timetable", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "Unable to login\nPossibly due to incorrect login information",
+                            "Timetable", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (RuntimeException e) {
                 if (e.getCause() instanceof UnknownHostException) {
@@ -92,7 +102,8 @@ public class Widgets extends JFrame {
                         gui.setSchedule(schedule);
                         JOptionPane.showMessageDialog(null, "Using cached data!", "Warn", JOptionPane.ERROR_MESSAGE);
                     } else {
-                        JOptionPane.showMessageDialog(null, e.getMessage() + "\nOffline!", "Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(null, e.getMessage() + "\nOffline!", "Error",
+                                JOptionPane.ERROR_MESSAGE);
                     }
                 } else {
                     JOptionPane.showMessageDialog(null, e.getMessage(), "Runtime Error", JOptionPane.ERROR_MESSAGE);
