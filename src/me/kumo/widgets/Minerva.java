@@ -1,4 +1,4 @@
-package me.kumo;
+package me.kumo.widgets;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -75,9 +75,11 @@ public class Minerva {
         map.put("sid", username);
         map.put("PIN", password);
         Document doc = post("/pban1/twbkwbis.P_ValLogin", map);
-        if (!doc.select("meta[http-equiv=refresh][content*=url=/pban1/twbkwbis.P_GenMenu?name=bmenu.P_MainMnu]").isEmpty()) {
+        if (!doc.select("meta[http-equiv=refresh][content*=url=/pban1/twbkwbis.P_GenMenu?name=bmenu.P_MainMnu]")
+                .isEmpty()) {
             System.out.println("logged in");
             return true;
-        } else return false;
+        } else
+            return false;
     }
 }

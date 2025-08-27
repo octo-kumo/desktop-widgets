@@ -6,10 +6,10 @@ plugins {
 
 group = "me.kumo"
 
-version = "0.0.6"
+version = "0.0.7"
 
 application {
-    mainClass = "me.kumo.Widgets"
+    mainClass = "me.kumo.widgets.Widgets"
 }
 
 java.sourceCompatibility = JavaVersion.VERSION_1_8

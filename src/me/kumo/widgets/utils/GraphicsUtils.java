@@ -1,4 +1,4 @@
-package me.kumo.utils;
+package me.kumo.widgets.utils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -44,7 +44,7 @@ public class GraphicsUtils {
     }
 
     public static int drawStringClipped(Graphics2D g2d, String text, float x, float y, int valign,
-                                        int justify, Color bg, int maxWidth) {
+            int justify, Color bg, int maxWidth) {
         FontMetrics fontMetrics = g2d.getFontMetrics();
 
         // Check if text needs clipping

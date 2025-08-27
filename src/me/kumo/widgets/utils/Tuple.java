@@ -1,4 +1,4 @@
-package me.kumo.utils;
+package me.kumo.widgets.utils;
 
 import java.util.Objects;
 
@@ -27,8 +27,10 @@ public final class Tuple<A, B, C> {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
+        if (obj == this)
+            return true;
+        if (obj == null || obj.getClass() != this.getClass())
+            return false;
         Tuple<?, ?, ?> that = (Tuple<?, ?, ?>) obj;
         return Objects.equals(this.a, that.a) &&
                 Objects.equals(this.b, that.b) &&

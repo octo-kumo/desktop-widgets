@@ -1,4 +1,6 @@
-package me.kumo;
+package me.kumo.widgets;
+
+import java.util.prefs.BackingStoreException;
 
 import javax.swing.*;
 
@@ -17,6 +19,11 @@ public class PrefStringItem extends MenuItem {
                 value = res;
                 System.out.println("Setting " + prefId);
                 Widgets.prefs.put(prefId, value);
+                try {
+                    Widgets.prefs.flush();
+                } catch (BackingStoreException e1) {
+                    throw new RuntimeException(e1);
+                }
             }
         });
     }

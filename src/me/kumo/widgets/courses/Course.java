@@ -1,4 +1,4 @@
-package me.kumo.courses;
+package me.kumo.widgets.courses;
 
 import java.time.DayOfWeek;
 import java.util.Set;
@@ -43,7 +43,9 @@ public class Course {
 
         public String note;
 
-        public Section(String CRN, String subject, String courseCode, String section, String type, double credits, String title, String instructor, String status, int capacity, int enrolled, int remaining, int waitlistCapacity, int waitlistEnrolled, int waitlistRemaining) {
+        public Section(String CRN, String subject, String courseCode, String section, String type, double credits,
+                String title, String instructor, String status, int capacity, int enrolled, int remaining,
+                int waitlistCapacity, int waitlistEnrolled, int waitlistRemaining) {
             this.CRN = CRN;
             this.subject = subject;
             this.courseCode = courseCode;
@@ -70,7 +72,8 @@ public class Course {
         public String startDate;
         public String endDate;
 
-        public Slot(Set<DayOfWeek> days, String location, String startTime, String endTime, String startDate, String endDate) {
+        public Slot(Set<DayOfWeek> days, String location, String startTime, String endTime, String startDate,
+                String endDate) {
             this.days = days;
             this.location = location;
             this.startTime = startTime;

@@ -1,8 +1,8 @@
-package me.kumo;
+package me.kumo.widgets;
 
-import me.kumo.timetable.Timetable;
-import me.kumo.timetable.TimetableCrawler;
-import me.kumo.timetable.TimetablePainter;
+import me.kumo.widgets.timetable.Timetable;
+import me.kumo.widgets.timetable.TimetableCrawler;
+import me.kumo.widgets.timetable.TimetablePainter;
 
 import javax.swing.*;
 import java.awt.Component;

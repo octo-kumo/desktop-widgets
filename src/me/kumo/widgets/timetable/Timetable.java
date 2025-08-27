@@ -1,8 +1,9 @@
-package me.kumo.timetable;
+package me.kumo.widgets.timetable;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import me.kumo.Widgets;
+
+import me.kumo.widgets.Widgets;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,9 +13,9 @@ import java.util.Objects;
 public class Timetable {
     private static final Gson gson = new GsonBuilder().create();
 
-    public static final Color[][] THEMES = new Color[][]{
-            {Color.WHITE, Color.GRAY, Color.CYAN, new Color(0, 0, 0, 100)},
-            {Color.BLACK, Color.DARK_GRAY, Color.GREEN, new Color(255, 255, 255, 170)},
+    public static final Color[][] THEMES = new Color[][] {
+            { Color.WHITE, Color.GRAY, Color.CYAN, new Color(0, 0, 0, 100) },
+            { Color.BLACK, Color.DARK_GRAY, Color.GREEN, new Color(255, 255, 255, 170) },
     };
     public String date;
     public int minHour = 8;
@@ -25,8 +26,10 @@ public class Timetable {
         this.date = date;
         this.classes = classes;
         if (this.classes != null) {
-            minHour = Arrays.stream(classes).flatMap(Arrays::stream).mapToInt(c -> (int) (c.start / 3600)).min().orElse(8);
-            maxHour = Arrays.stream(classes).flatMap(Arrays::stream).mapToInt(c -> (int) Math.ceil(c.end / 3600d)).max().orElse(18);
+            minHour = Arrays.stream(classes).flatMap(Arrays::stream).mapToInt(c -> (int) (c.start / 3600)).min()
+                    .orElse(8);
+            maxHour = Arrays.stream(classes).flatMap(Arrays::stream).mapToInt(c -> (int) Math.ceil(c.end / 3600d)).max()
+                    .orElse(18);
         }
     }
 
@@ -61,8 +64,10 @@ public class Timetable {
 
         @Override
         public boolean equals(Object obj) {
-            if (obj == this) return true;
-            if (obj == null || obj.getClass() != this.getClass()) return false;
+            if (obj == this)
+                return true;
+            if (obj == null || obj.getClass() != this.getClass())
+                return false;
             Class that = (Class) obj;
             return Objects.equals(this.name, that.name) &&
                     Objects.equals(this.location, that.location) &&
@@ -99,7 +104,8 @@ public class Timetable {
         public void paintComponent(Graphics g) {
             super.paintComponent(g);
             int oldH = height;
-            height = TimetablePainter.paint((Graphics2D) g, schedule, THEMES[widget.theme ? 0 : 1], widget.strong, widget.alignRight);
+            height = TimetablePainter.paint((Graphics2D) g, schedule, THEMES[widget.theme ? 0 : 1], widget.strong,
+                    widget.alignRight);
 
             if (height != oldH) {
                 revalidate();
@@ -110,7 +116,8 @@ public class Timetable {
 
         @Override
         public Dimension getPreferredSize() {
-            if (super.isPreferredSizeSet()) return super.getPreferredSize();
+            if (super.isPreferredSizeSet())
+                return super.getPreferredSize();
             return new Dimension(TimetablePainter.W, height == 0 ? 200 : height);
         }
 

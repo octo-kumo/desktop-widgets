@@ -1,8 +1,9 @@
-package me.kumo.timetable;
+package me.kumo.widgets.timetable;
 
-import me.kumo.Minerva;
-import me.kumo.Widgets;
-import me.kumo.utils.Tuple;
+import me.kumo.widgets.utils.Tuple;
+import me.kumo.widgets.Minerva;
+import me.kumo.widgets.Widgets;
+
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.TextNode;

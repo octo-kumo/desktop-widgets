@@ -1,22 +1,29 @@
-package me.kumo;
+package me.kumo.widgets;
 
-import me.kumo.timetable.Timetable;
-import me.kumo.timetable.TimetableCrawler;
+import me.kumo.widgets.timetable.Timetable;
+import me.kumo.widgets.timetable.TimetableCrawler;
 
 import javax.swing.*;
-
-import dorkbox.systemTray.SystemTray;
 
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.UnknownHostException;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 public class Widgets extends JFrame {
-    public static Preferences prefs = Preferences.userNodeForPackage(Widgets.class).node("widget_prefs");
-    public static Preferences cache = Preferences.userNodeForPackage(Widgets.class).node("widget_cache");
-    private static SystemTray tray;
+    public static Preferences prefs = Preferences.userNodeForPackage(Widgets.class);
+    public static Preferences cache = Preferences.userNodeForPackage(Timetable.class);
+
+    static {
+        try {
+            Widgets.prefs.sync();
+            Widgets.cache.sync();
+        } catch (BackingStoreException e) {
+            e.printStackTrace();
+        }
+    }
     public static final Minerva minerva = new Minerva();
     private static Timetable.GUI gui;
     public boolean theme = true;
@@ -51,7 +58,7 @@ public class Widgets extends JFrame {
             new Timer(10000, e -> widget.repaint()).start();
             refresh();
             try {
-                tray = WidgetTray.setup(widget);
+                WidgetTray.setup(widget);
             } catch (AWTException e) {
                 throw new RuntimeException(e);
             }
